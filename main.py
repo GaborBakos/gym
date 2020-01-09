@@ -1,6 +1,7 @@
 import numpy
 import pandas
 import copy
+from datetime import datetime
 
 from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise
 
@@ -109,18 +110,8 @@ def generate_workout(day, total_allocated_time):
 
     return generate_table(day, final_list)
 
+if __name__ == '__main__':
+    total_workout_time = input("Please enter how many minutes you have for your gym session:\n ")
+    print(generate_workout(DayList[datetime.today().weekday()], total_workout_time))
 
-print(generate_workout('Mon', 90))
-
-# for idx, day in enumerate(DayList):
-#     max_sets = datetime.min
-#     index = []
-#     all_exercises = ExerciseDirectory[ExerciseType[idx % len(ExerciseType)]]
-#     main_exercises = list(filter(lambda x: x if x.ExerciseType == ExerciseType.MAIN else None, all_exercises))
-#     additional_exercises = 1
-#     picked_indices = pick_exercise(main_exercises, 1)
-#     ex = [main_exercises[el] for el in picked_indices]
-#     print(ex)
-#     picked_indices = pick_exercise(main_exercises, 1)
-#     ex = [main_exercises[el] for el in picked_indices]
 
