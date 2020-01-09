@@ -15,6 +15,12 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 
 
 def remaining_time(time, exercises):
+    """
+    Computes the remaining time.
+    :param time: The time we have.
+    :param exercises: The exercise we are adding to the workout.
+    :return: The remaining time after adding the exercise.
+    """
     if isinstance(exercises, Exercise):
         return time - exercises.TimeRequired
     else:
@@ -24,6 +30,12 @@ def remaining_time(time, exercises):
 
 
 def pick_exercise_idx(exercise_list, num_choices):
+    """
+    Randomly pick an exercise index given the probability distributions provided with them.
+    :param exercise_list: The whole list of exercises.
+    :param num_choices: The number of choices we want.
+    :return: Randomly picked exercises (tilted by their respective probabilities).
+    """
     probability_distribution = numpy.array([exercise.Probability
                                             if exercise.Probability is not None
                                             else 0
@@ -33,6 +45,13 @@ def pick_exercise_idx(exercise_list, num_choices):
 
 
 def pick_secondary_exercises(exercise_list, allocated_time):
+    """
+    Pick secondary exercises.
+    :param exercise_list: The whole list of exercises.
+    :param allocated_time: The time we can work with.
+    :return: A randomized selection of exercises that should fit into our time limitations and are coherent with our
+             main exercise.
+    """
     res_secondaries = []
     res_fillers = []
     while allocated_time > 0 and len(exercise_list):
@@ -52,6 +71,13 @@ def pick_secondary_exercises(exercise_list, allocated_time):
 
 
 def subset_exercise_list(exercise_list, exercise_type=ExerciseType.MAIN, exercise_group=None):
+    """
+    Finds the subset of the exercise list given some conditions.
+    :param exercise_list: The whole list that will be sub-sampled.
+    :param exercise_type: The type of the exercises we are looking for.
+    :param exercise_group: The exercise group we are looking for.
+    :return: The subset of the exercises that meet the above conditions.
+    """
     ex = copy.deepcopy(exercise_list)
     if exercise_group is not None:
         ex = list(filter(lambda x: x if x.ExerciseGroup == exercise_group or x.ExerciseGroup is None else None, ex))
@@ -59,13 +85,18 @@ def subset_exercise_list(exercise_list, exercise_type=ExerciseType.MAIN, exercis
 
 
 def find_workout_for_day(day):
+    """ Finds which workout is on for the given day. """
     return ExerciseRotation[DayList.index(day) % len(ExerciseRotation)]
 
 
-# fields = ('ExerciseName', 'NumSets', 'NumReps', 'Weights', 'TimeRequired', 'RestTimer', 'ExerciseType',
-#           'ExerciseGroup', 'Probability', 'LastUsed')
-
 def generate_table(day, exercise_list, timed_workout=True):
+    """
+    Generate a nicely designed table for the workout.
+    :param day: Displays the day of the workout.
+    :param exercise_list: The list which will be dissected into the table.
+    :param timed_workout: Whether to include timings in the table.
+    :return: Pandas DataFrame with the workout routine.
+    """
     index = []
     max_sets = -numpy.inf
     for exercise in exercise_list:
@@ -91,6 +122,12 @@ def generate_table(day, exercise_list, timed_workout=True):
 
 
 def generate_workout(day, total_allocated_time):
+    """
+    Generate a coherent workout routine, that is fitted to your needs.
+    :param day: The day determines the workout routine.
+    :param total_allocated_time: How much time is dedicated for the whole training session.
+    :return: A table with the workout.
+    """
     warm_up_exercise = (ExerciseDirectory['Warm Up'][1]
                         if find_workout_for_day(day) == 'Pull'
                         else ExerciseDirectory['Warm Up'][0])
@@ -109,6 +146,7 @@ def generate_workout(day, total_allocated_time):
     final_list = [warm_up_exercise] + [selected_main_exercise] + selected_secondary_exercises + post_workout_routine
 
     return generate_table(day, final_list)
+
 
 if __name__ == '__main__':
     total_workout_time = int(input("Please enter how many minutes you have for your gym session:\n "))
