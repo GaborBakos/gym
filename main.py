@@ -111,7 +111,7 @@ def generate_workout(day, total_allocated_time):
     return generate_table(day, final_list)
 
 if __name__ == '__main__':
-    total_workout_time = input("Please enter how many minutes you have for your gym session:\n ")
+    total_workout_time = int(input("Please enter how many minutes you have for your gym session:\n "))
     print(generate_workout(DayList[datetime.today().weekday()], total_workout_time))
 
 
