@@ -117,7 +117,8 @@ def generate_table(day, exercise_list, timed_workout=True):
     timer_df = pandas.DataFrame(timings, index, timer_columns)
     df = pandas.DataFrame(data, index, columns)
     if timed_workout:
-        return pandas.concat([df, timer_df], axis=1)
+        df = pandas.concat([df, timer_df], axis=1)
+        df.columns.name = day
     return df
 
 
@@ -148,8 +149,28 @@ def generate_workout(day, total_allocated_time):
     return generate_table(day, final_list)
 
 
+def generate_weekly_schedule(workout_times_list):
+    for idx, total_time in enumerate(workout_times_list):
+        print(generate_workout(DayList[idx], total_time))
+
+
 if __name__ == '__main__':
-    total_workout_time = int(input("Please enter how many minutes you have for your gym session:\n "))
-    print(generate_workout(DayList[datetime.today().weekday()], total_workout_time))
+    # total_workout_time = int(input("Please enter how many minutes you have for your gym session:\n "))
+    user_input = input(
+                        """
+Please enter 7 space separated ints for Mon to Sun representing your Time Allowance in minutes:
+(For example: '60 60 60 60 60 90 90')
+""")
+    try:
+        user_input = list(map(int, user_input.split(' ')))
+        if len(user_input) != 7:
+            raise ValueError
+    except ValueError:
+        user_input = [90, 90, 90, 90, 90, 120, 120]
+    # workout_time_list = list(map(int,))
+    # print(workout_time_list)
+    # print(generate_workout(DayList[datetime.today().weekday()], total_workout_time))
+    generate_weekly_schedule(user_input)
+
 
 
