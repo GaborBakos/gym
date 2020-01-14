@@ -2,6 +2,7 @@ from collections import namedtuple
 from enum import Enum
 import numpy
 from datetime import datetime
+from itertools import count
 
 class ExerciseType(Enum):
     MAIN = 'main'
@@ -19,10 +20,55 @@ class ExerciseGroup(Enum):
     STRETCH = 'stretch'
 
 
-fields = ('ExerciseName', 'NumSets', 'NumReps', 'Weights', 'TimeRequired', 'RestTimer', 'ExerciseType', 'ExerciseGroup',
-          'Probability', 'LastUsed')
-defaults = (None, 0, 0, tuple(), 0, 0, None, None, 0, datetime.min)
-Exercise = namedtuple('Exercise', fields, defaults=defaults)
+# fields = ('ExerciseName', 'NumSets', 'NumReps', 'Weights', 'TimeRequired', 'RestTimer', 'ExerciseType',
+#           'ExerciseGroup', 'Probability', 'LastUsed')
+# defaults = (None, 0, 0, tuple(), 0, 0, None, None, 0, datetime.min)
+# Exercise = namedtuple('Exercise', fields, defaults=defaults)
+# fields_with_defaults = {field: default for field, default in zip(fields, defaults)}
+
+
+class Exercise:
+    _ids = count(0)
+
+    def __init__(self,
+                 ExerciseName=None,
+                 NumSets=0,
+                 NumReps=tuple(),
+                 Weights=tuple(),
+                 TimeRequired=0,
+                 RestTimer=0,
+                 ExerciseType=None,
+                 ExerciseGroup=None,
+                 Probability=0.0,
+                 LastUsed=datetime.min):
+        self.ExerciseName = ExerciseName
+        self.NumSets = NumSets
+        self.NumReps = NumReps
+        self.Weights = Weights
+        self.TimeRequired = TimeRequired
+        self.RestTimer = RestTimer
+        self.ExerciseType = ExerciseType
+        self.ExerciseGroup = ExerciseGroup
+        self.Probability = Probability
+        self.LastUsed = LastUsed
+        self.id = next(self._ids)
+
+    def __repr__(self):
+        return (
+f'''
+Exercise
+ExerciseName:   {self.ExerciseName},
+NumSets:        {self.NumSets},
+NumReps:        {self.NumReps},
+Weights:        {self.Weights},
+TimeRequired:   {self.TimeRequired},
+RestTimer:      {self.RestTimer},
+ExerciseType:   {self.ExerciseType},
+ExerciseGroup:  {self.ExerciseGroup},
+Probability:    {self.Probability},
+LastUsed:       {self.LastUsed}
+'''
+        )
 
 ExerciseRotation = ('Push', 'Pull', 'Rest', 'Legs', 'Push', 'Pull', 'Legs')
 WarmUpTime = 15
@@ -524,16 +570,6 @@ ExerciseDirectory = {
                      ExerciseGroup=None,
                      Probability=0.3,
                      LastUsed=datetime.min),
-            Exercise(ExerciseName='Dips',
-                     NumSets=4,
-                     NumReps=(8, 8, 8, 8),
-                     Weights=(0, 0, 0, 0),
-                     TimeRequired=7,
-                     RestTimer=1,
-                     ExerciseType=ExerciseType.SECONDARY,
-                     ExerciseGroup=None,
-                     Probability=0.3,
-                     LastUsed=datetime.min),
             Exercise(ExerciseName='Triceps Dip Machine',
                      NumSets=4,
                      NumReps=(8, 8, 8, 8),
@@ -781,7 +817,7 @@ ExerciseDirectory = {
                      NumSets=1,
                      NumReps=(1,),
                      Weights=(0,),
-                     TimeRequired=15,
+                     TimeRequired=10,
                      RestTimer=0,
                      ExerciseType=ExerciseType.MAIN,
                      ExerciseGroup=ExerciseGroup.STRETCH,
@@ -813,7 +849,7 @@ ExerciseDirectory = {
         ),
     'Rest':
         (
-            Exercise(ExerciseName='Streching',
+            Exercise(ExerciseName='Streching Whole Body',
                      NumSets=1,
                      NumReps=(1,),
                      Weights=(0,),

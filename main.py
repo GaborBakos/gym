@@ -1,8 +1,8 @@
 import numpy
 import pandas
 import copy
-from datetime import datetime
 
+from formatter import table_formatter
 from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise
 
 
@@ -12,6 +12,16 @@ DayList = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 
 
 flatten = lambda l: [item for sublist in l for item in sublist]
+ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
+
+column_formater = {f'{ordinal(x)} Weight': lambda s: f'{s:.2f}' for x in range(10)}.update(
+                  {f'{ordinal(x)} Reps': lambda s: f'{s:.2f}' for x in range(10)}
+                    )
+
+
+def hover(hover_color="#ffff99"):
+    return dict(selector="tr:hover",
+                props=[("background-color", f"{hover_color}")])
 
 
 def remaining_time(time, exercises):
@@ -102,8 +112,9 @@ def generate_table(day, exercise_list, timed_workout=True):
     for exercise in exercise_list:
         index.append(exercise.ExerciseName)
         max_sets = max(max_sets, exercise.NumSets)
-    index = pandas.Index(index, name='Exercises')
-    columns = pandas.Index(['Weight', 'Reps'] * max_sets, name=day)
+    # index = pandas.Index(index, name='Exercises')
+    index = pandas.Index(index)
+    columns = pandas.Index(flatten([[f"{ordinal(idx)} Weight", f"{ordinal(idx)} Reps"] for idx in range(1, max_sets + 1)]), name=day)
     timer_columns = pandas.Index(['Time Alloc', 'Rest'])
     data = numpy.empty((len(exercise_list), max_sets * 2))
     timings = numpy.empty((len(exercise_list), 2), dtype=int)
@@ -144,29 +155,70 @@ def generate_workout(day, total_allocated_time):
                                                 exercise_type=ExerciseType.SECONDARY,
                                                 exercise_group=selected_main_exercise.ExerciseGroup))
     selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_allocated_time)
+    selected_secondary_exercises = sorted(selected_secondary_exercises, key=lambda x: x.id)
     final_list = [warm_up_exercise] + [selected_main_exercise] + selected_secondary_exercises + post_workout_routine
 
     return generate_table(day, final_list)
 
 
+def format_df(df, column_style=None, table_style=None):
+    if column_style is None:
+        column_style = dict()
+    if table_style is None:
+        table_style = []
+    return df.style.format(column_style).set_table_styles(table_style)
+
+
 def generate_weekly_schedule(workout_times_list):
     for idx, total_time in enumerate(workout_times_list):
-        print(generate_workout(DayList[idx], total_time))
+        df = generate_workout(DayList[idx], total_time)
+        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\{DayList[idx]}.html", "w") as f:
+            # f.write(df
+            #         .style.format("{:.0f}")
+            #         .set_properties(**{
+            #                           # 'background-color': 'darkgray',
+            #                           'color': 'black',
+            #                           # 'border-color': 'black',
+            #                           'text-align': 'left'})
+            #         .set_table_styles(
+            #         [
+            #             dict(
+            #                  selector="th",
+            #                  props=[("text-align", "right")]),
+            #             dict(
+            #                  selector="td",
+            #                  props=[("border-bottom", "dotted"),
+            #                         ("border-width", "1px"),
+            #                         # ("border-right", "solid"),
+            #                         ("border-color", "black")]),
+            #             dict(
+            #                  selector="th",
+            #                  props=[("border-bottom", "solid"),
+            #                         # ("border-right", "solid"),
+            #                         ("border-color", "black")]),
+            #             dict(
+            #                  selector="tbody tr:nth-child(even)",
+            #                  props=[("background-color", "#DCDCDC")]),
+            #             hover("0066ff")
+            #          ])
+            #         .render().replace("nan", ""))
+            f.write(
+                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", ""))
 
 
 if __name__ == '__main__':
     # total_workout_time = int(input("Please enter how many minutes you have for your gym session:\n "))
-    user_input = input(
-                        """
-Please enter 7 space separated ints for Mon to Sun representing your Time Allowance in minutes:
-(For example: '60 60 60 60 60 90 90')
-""")
-    try:
-        user_input = list(map(int, user_input.split(' ')))
-        if len(user_input) != 7:
-            raise ValueError
-    except ValueError:
-        user_input = [90, 90, 90, 90, 90, 120, 120]
+    #     user_input = input(
+    #                         """
+    # Please enter 7 space separated ints for Mon to Sun representing your Time Allowance in minutes:
+    # (For example: '60 60 60 60 60 90 90')
+    # """)
+    #     try:
+    #         user_input = list(map(int, user_input.split(' ')))
+    #         if len(user_input) != 7:
+    #             raise ValueError
+    #     except ValueError:
+    user_input = [90, 90, 90, 90, 90, 90, 90]
     # workout_time_list = list(map(int,))
     # print(workout_time_list)
     # print(generate_workout(DayList[datetime.today().weekday()], total_workout_time))
