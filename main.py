@@ -1,6 +1,7 @@
 import numpy
 import pandas
 import copy
+import datetime
 
 from formatter import table_formatter
 from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise
@@ -170,40 +171,14 @@ def format_df(df, column_style=None, table_style=None):
 
 
 def generate_weekly_schedule(workout_times_list):
+    current_week_num = datetime.date.today().isocalendar()[1]
     for idx, total_time in enumerate(workout_times_list):
         df = generate_workout(DayList[idx], total_time)
-        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\{DayList[idx]}.html", "w") as f:
-            # f.write(df
-            #         .style.format("{:.0f}")
-            #         .set_properties(**{
-            #                           # 'background-color': 'darkgray',
-            #                           'color': 'black',
-            #                           # 'border-color': 'black',
-            #                           'text-align': 'left'})
-            #         .set_table_styles(
-            #         [
-            #             dict(
-            #                  selector="th",
-            #                  props=[("text-align", "right")]),
-            #             dict(
-            #                  selector="td",
-            #                  props=[("border-bottom", "dotted"),
-            #                         ("border-width", "1px"),
-            #                         # ("border-right", "solid"),
-            #                         ("border-color", "black")]),
-            #             dict(
-            #                  selector="th",
-            #                  props=[("border-bottom", "solid"),
-            #                         # ("border-right", "solid"),
-            #                         ("border-color", "black")]),
-            #             dict(
-            #                  selector="tbody tr:nth-child(even)",
-            #                  props=[("background-color", "#DCDCDC")]),
-            #             hover("0066ff")
-            #          ])
-            #         .render().replace("nan", ""))
+        # with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\{DayList[idx]}.html", "w") as f:
+        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{current_week_num}.html", "a+") as f:
             f.write(
-                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", ""))
+                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") + '\n\n\n\n\n')
+
 
 
 if __name__ == '__main__':
@@ -218,7 +193,7 @@ if __name__ == '__main__':
     #         if len(user_input) != 7:
     #             raise ValueError
     #     except ValueError:
-    user_input = [90, 90, 90, 90, 90, 90, 90]
+    user_input = [90, 90, 90, 90, 90, 120, 120]
     # workout_time_list = list(map(int,))
     # print(workout_time_list)
     # print(generate_workout(DayList[datetime.today().weekday()], total_workout_time))

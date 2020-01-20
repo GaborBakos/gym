@@ -8,19 +8,20 @@ table_formatter = [
     dict(selector='th',
          props=[
              ('text-align', 'center'),
-             ('color', 'white')
+             ('color', 'black'),
+             ('font-family', 'serif')
          ]),
     dict(selector='tbody',
          props=[
-             ('color', 'white')
+             ('color', 'black')
          ]),
     dict(selector='tbody tr:nth-child(even)',
          props=[
-             ('background', '#000066'),
+             ('background', 'gray'),
          ]),
     dict(selector='tbody tr:nth-child(odd)',
          props=[
-             ('background', '#0033cc')
+             ('background', 'lightgrey')
          ]),
     dict(selector='tbody tr:hover td',
          props=[
@@ -30,12 +31,12 @@ table_formatter = [
     dict(selector='tbody th',
          props=[
              ('text-align', 'left'),
-             ('color', 'white')
+             ('color', 'black')
          ]),
     dict(selector='thead tr:nth-child(1)',
          props=[
-             ('background-color', '#202020'),
-             ('color', 'white')
+             ('background-color', 'gray'),
+             ('color', 'black')
          ]),
     # dict(selector='thead tr:nth-child(2)',
     #      props=[
@@ -49,6 +50,6 @@ table_formatter = [
          ]),
     dict(selector='thead th:nth-child(1)',
          props=[
-             ('background-color', 'purple')
+             ('background-color', 'white')
          ])
                 ]
