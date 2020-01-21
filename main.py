@@ -178,7 +178,9 @@ def generate_weekly_schedule(workout_times_list):
         with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{current_week_num}.html", "a+") as f:
             f.write(
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") + '\n\n\n\n\n')
-
+        with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{current_week_num}.html", "a+") as f:
+            f.write(
+                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") + '\n\n\n\n\n')
 
 if __name__ == '__main__':
     # total_workout_time = int(input("Please enter how many minutes you have for your gym session:\n "))
