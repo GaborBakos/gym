@@ -70,6 +70,7 @@ LastUsed:       {self.LastUsed}
 '''
         )
 
+
 ExerciseRotation = ('Push', 'Pull', 'Rest', 'Legs', 'Push', 'Pull', 'Legs')
 WarmUpTime = 15
 RollingTime = 10
