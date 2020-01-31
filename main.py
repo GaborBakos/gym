@@ -204,3 +204,7 @@ if __name__ == '__main__':
 
 
 
+#TODO: Create notebook template for exercises (jupyter notebook notebook_name.ipynb)
+#TODO: Populate template with latest exercises (how to automate this?)
+#TODO: Render exercise notebook into HTML (jupyter nbconvert notebook_name.ipynb --to html --output output.html)
+#TODO: Upload HTML to GitHub (not sure yet)
