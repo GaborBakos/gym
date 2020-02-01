@@ -4,6 +4,26 @@
 #
 # print(column_formater)
 
+
+def format_df(df, column_style=None, table_style=None):
+    if column_style is None:
+        column_style = dict()
+    if table_style is None:
+        table_style = []
+    return df.style.format(column_style).set_table_styles(table_style)
+
+
+def hover(hover_color="#ffff99"):
+    return dict(selector="tr:hover",
+                props=[("background-color", f"{hover_color}")])
+
+
+flatten = lambda l: [item for sublist in l for item in sublist]
+ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
+column_formater = {f'{ordinal(x)} Weight': lambda s: f'{s:.2f}' for x in range(10)}.update(
+                  {f'{ordinal(x)} Reps': lambda s: f'{s:.2f}' for x in range(10)}
+                    )
+
 table_formatter = [
     dict(selector='th',
          props=[
