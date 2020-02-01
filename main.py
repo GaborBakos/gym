@@ -1,6 +1,7 @@
 import subprocess
 import pandas
 import datetime
+import fileinput
 
 from formatter import column_formater, table_formatter, format_df
 from exercise_generator import generate_workout
@@ -30,6 +31,14 @@ if __name__ == '__main__':
     subprocess.call(
                     f"jupyter nbconvert gym_weekly_template.ipynb"
                     f" --template nbextensions --to html --output week_{current_week_num}.html")
+    with open(f"week_{current_week_num}.html", "r") as f:
+        for line in f:
+            line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
+
+    for line in fileinput.input(f"week_{current_week_num}.html", inplace=True):
+        if "gym_weekly_template" in line:
+            line = line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
+        print(line, end='')
     # generate_weekly_schedule(user_input, current_week_num)
 
 
