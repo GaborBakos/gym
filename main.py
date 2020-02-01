@@ -1,3 +1,4 @@
+import subprocess
 import pandas
 import datetime
 
@@ -9,15 +10,14 @@ pandas.set_option('display.width', 1000)
 DayList = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 
 
-def generate_weekly_schedule(workout_times_list):
-    current_week_num = datetime.date.today().isocalendar()[1]
+def generate_weekly_schedule(workout_times_list, cwn):
     for idx, total_time in enumerate(workout_times_list):
         df = generate_workout(DayList[idx], total_time)
-        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{current_week_num}.html", "a+") as f:
+        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{cwn}.html", "r+") as f:
             f.write(
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
                 '\n\n\n\n\n')
-        with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{current_week_num}.html", "a+") as f:
+        with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{cwn}.html", "r+") as f:
             f.write(
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
                 '\n\n\n\n\n')
@@ -26,7 +26,11 @@ def generate_weekly_schedule(workout_times_list):
 
 if __name__ == '__main__':
     user_input = [90, 90, 90, 90, 90, 120, 120]
-    generate_weekly_schedule(user_input)
+    current_week_num = datetime.date.today().isocalendar()[1]
+    subprocess.call(
+        f"jupyter nbconvert gym_weekly_template.ipynb --to html --output week_{current_week_num}.html")
+    # generate_weekly_schedule(user_input, current_week_num)
+
 
 # TODO 1: Create notebook template for exercises (jupyter notebook notebook_name.ipynb)
 # UPDATE 1: Something preliminary is there already
