@@ -28,7 +28,8 @@ if __name__ == '__main__':
     user_input = [90, 90, 90, 90, 90, 120, 120]
     current_week_num = datetime.date.today().isocalendar()[1]
     subprocess.call(
-        f"jupyter nbconvert gym_weekly_template.ipynb --to html --output week_{current_week_num}.html")
+                    f"jupyter nbconvert gym_weekly_template.ipynb"
+                    f" --template nbextensions --to html --output week_{current_week_num}.html")
     # generate_weekly_schedule(user_input, current_week_num)
 
 
