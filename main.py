@@ -30,7 +30,7 @@ if __name__ == '__main__':
     current_week_num = datetime.date.today().isocalendar()[1]
     subprocess.call(
                     f"jupyter nbconvert gym_weekly_template.ipynb"
-                    f" --template nbextensions --to html --output week_{current_week_num}.html")
+                    f" --template nbextensions --to html --execute --output week_{current_week_num}.html")
     with open(f"week_{current_week_num}.html", "r") as f:
         for line in f:
             line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
