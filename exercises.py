@@ -8,7 +8,8 @@ class ExerciseType(Enum):
     MAIN = 'main'
     SECONDARY = 'secondary'
     FILLER = 'x_filler'
-
+    def __repr__(self):
+        return "EE"
 
 class ExerciseGroup(Enum):
     SQUAT = 'squat'
@@ -19,6 +20,8 @@ class ExerciseGroup(Enum):
     HIIT = 'hiit'
     STRETCH = 'stretch'
 
+    def __repr__(self):
+        return "EE"
 
 # fields = ('ExerciseName', 'NumSets', 'NumReps', 'Weights', 'TimeRequired', 'RestTimer', 'ExerciseType',
 #           'ExerciseGroup', 'Probability', 'LastUsed')
