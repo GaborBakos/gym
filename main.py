@@ -27,22 +27,22 @@ def generate_weekly_schedule(workout_times_list, cwn):
 
 if __name__ == '__main__':
     user_input = [90, 90, 90, 90, 90, 120, 120]
-    for current_week_num in range(10):
-        # current_week_num = datetime.date.today().isocalendar()[1]
-        collection_folder = "C:\\Users\\Gabor\\PycharmProjects\\gym\\weekly_exercises\\"
-        subprocess.call(
-                f"jupyter nbconvert gym_weekly_template.ipynb"
-                f" --template nbextensions --to html --execute --output {collection_folder}week_{current_week_num}.html")
-        # with open(f"{collection_folder}week_{current_week_num}.html", "r") as f:
-        #     for line in f:
-        #         line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
+    # for current_week_num in range(10):
+    current_week_num = datetime.date.today().isocalendar()[1]
+    collection_folder = "C:\\Users\\Gabor\\PycharmProjects\\gym\\weekly_exercises\\"
+    subprocess.call(
+            f"jupyter nbconvert gym_weekly_template.ipynb"
+            f" --template nbextensions --to html --execute --output {collection_folder}week_{current_week_num}.html")
+    # with open(f"{collection_folder}week_{current_week_num}.html", "r") as f:
+    #     for line in f:
+    #         line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
 
-        for line in fileinput.input(f"{collection_folder}week_{current_week_num}.html", inplace=True):
-            if "gym_weekly_template" in line:
-                line = line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
-            if "Exercises for Week __" in line:
-                line = line.replace("__", str(current_week_num))
-            print(line, end='')
+    for line in fileinput.input(f"{collection_folder}week_{current_week_num}.html", inplace=True):
+        if "gym_weekly_template" in line:
+            line = line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
+        if "Exercises for Week __" in line:
+            line = line.replace("__", str(current_week_num))
+        print(line, end='')
         # generate_weekly_schedule(user_input, current_week_num)
 
 
