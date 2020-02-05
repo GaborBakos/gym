@@ -56,7 +56,7 @@ def main():
             for ex in group[1]:
                 print(f"Currently adding {ex} to our database")
                 add_exercise(conn, (str(el) for el in vars(ex).values()))
-
+        # TODO correct types
 
 if __name__ == '__main__':
     main()
