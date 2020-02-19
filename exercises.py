@@ -76,8 +76,8 @@ ExerciseDirectory = {
             # Main Exercises
             Exercise(exercise_name='Barbell Squats',
                      exercise_type=ExerciseType.MAIN,
-                     specific_group=ExerciseGroup.LEGS,
-                     exercise_group=ExerciseGroup.SQUAT,
+                     exercise_group=ExerciseGroup.LEGS,
+                     specific_group=ExerciseGroup.SQUAT,
                      probability=0.5),
             # Secondary Exercises
             Exercise(exercise_name='Front Squats',
