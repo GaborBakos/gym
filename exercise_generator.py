@@ -15,10 +15,6 @@ DayList = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 flatten = lambda l: [item for sublist in l for item in sublist]
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
 
-def hover(hover_color="#ffff99"):
-    return dict(selector="tr:hover",
-                props=[("background-color", f"{hover_color}")])
-
 
 def remaining_time(time, exercises):
     """
@@ -108,7 +104,6 @@ def generate_table(day, exercise_list, timed_workout=True):
     for exercise in exercise_list:
         index.append(exercise.ExerciseName)
         max_sets = max(max_sets, exercise.NumSets)
-    # index = pandas.Index(index, name='Exercises')
     index = pandas.Index(index)
     columns = pandas.Index(flatten([[f"{ordinal(idx)} Weight", f"{ordinal(idx)} Reps"] for idx in range(1, max_sets + 1)]), name=day)
     timer_columns = pandas.Index(['Time Alloc', 'Rest'])
@@ -146,7 +141,6 @@ def generate_workout(day, total_allocated_time):
     main_exercises = subset_exercise_list(all_exercises, exercise_type=ExerciseType.MAIN)
     selected_main_exercise = main_exercises[pick_exercise_idx(main_exercises, 1)]
     total_allocated_time = remaining_time(total_allocated_time, selected_main_exercise)
-    # total_allocated_time -= selected_main_exercise.TimeRequired
     secondary_exercises = (subset_exercise_list(all_exercises,
                                                 exercise_type=ExerciseType.SECONDARY,
                                                 exercise_group=selected_main_exercise.ExerciseGroup))
@@ -172,8 +166,10 @@ def generate_weekly_schedule(workout_times_list):
         # with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\{DayList[idx]}.html", "w") as f:
         with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{current_week_num}.html", "a+") as f:
             f.write(
-                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") + '\n\n\n\n\n')
+                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
+                '\n\n\n\n\n')
         with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{current_week_num}.html", "a+") as f:
             f.write(
-                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") + '\n\n\n\n\n')
+                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
+                '\n\n\n\n\n')
             print(df)
