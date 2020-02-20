@@ -6,6 +6,7 @@ import datetime
 from formatter import table_formatter, column_formater
 from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise
 from orm import percentage_of_orm, repetition_percentages_of_orm, adjusted_bench_press
+from database_connection import setup_connection, load_data
 
 pandas.set_option('display.max_columns', 500)
 pandas.set_option('display.width', 1000)
@@ -90,9 +91,6 @@ print(muscle_building(136.8, wu=True, orm_calculator=adjusted_bench_press))
 print(endurance_training(136.8, wu=True, orm_calculator=adjusted_bench_press))
 
 
-
-from database_connection import setup_connection, load_data
-
 conn = setup_connection()
 with conn:
     df = load_data(conn, user_id='Gabor', exercise_group=['ExerciseGroup.LEGS'],
@@ -100,16 +98,10 @@ with conn:
 print(df)
 
 
+for idx, exercise in df.iterrows():
+    print(exercise.Probability)
 
-
-
-
-
-
-
-
-
-
+# Old Stuff will need to be re-written
 def remaining_time(time, exercises):
     """
     Computes the remaining time.
