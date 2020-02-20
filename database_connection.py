@@ -72,18 +72,19 @@ def load_data(conn, user_id=None, exercise_group=None, specific_group=None):
     ) as tmp
     GROUP BY ExerciseName {"--" if user_id is not None else ""}, tmp.UserID
     '''
-    print(sql)
-
     cur = conn.cursor()
     cur.execute(sql)
-    return pandas.read_sql_query(sql, conn)
+    result = pandas.read_sql_query(sql, conn)
+    return result.drop('ExerciseName:1', axis=1)
+
+
+def setup_connection(database=r"C:\Users\Gabor\PycharmProjects\gym\exercises_db\exercises.db"):
+    return create_connection(database)
 
 
 def main():
-    database = r"C:\Users\Gabor\PycharmProjects\gym\exercises_db\exercises.db"
-
     # create a database connection
-    conn = create_connection(database)
+    conn = setup_connection()
     with conn:
         for group in ExerciseDirectory.items():
             for ex in group[1]:
@@ -102,12 +103,13 @@ def main():
                     pass
                     # print(f'Value is already entered {values}')
     with conn:
-        try:
-            data = ['PI', 'Lunges', 50, datetime.date(2020, 2, 18), 50]
-            # print(data)
-            add_user_data(conn, data)
-        except sqlite3.IntegrityError:
-            print(f'Value is already entered {data}')
+        for group in ExerciseDirectory.items():
+            for ex in group[1]:
+                try:
+                    data = ['Gabor', ex.ExerciseName, 100, datetime.date(2020, 2, 18), 109]
+                    add_user_data(conn, data)
+                except sqlite3.IntegrityError:
+                    print(f'Value is already entered {data}')
 
     with conn:
         print(load_data(conn, user_id=None, specific_group=['ExerciseGroup.SQUAT', 'ExerciseGroup.DEADLIFT']))

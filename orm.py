@@ -150,10 +150,10 @@ def repetition_percentages_of_orm(orm, orm_calculator=None, repetitions=None):
     return res
 
 
-print(percentage_of_orm(int(adjusted_bench_press(120, 5)), [1, 0.9, 0.85]))
-
-print(repetition_percentages_of_orm(int(adjusted_bench_press(120, 5)), adjusted_bench_press))
-
+# print(percentage_of_orm(int(adjusted_bench_press(120, 5)), [1, 0.9, 0.85]))
+#
+# print(repetition_percentages_of_orm(int(adjusted_bench_press(120, 5)), adjusted_bench_press))
+#
 
 
 
