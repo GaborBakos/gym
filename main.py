@@ -18,11 +18,11 @@ def generate_weekly_schedule(workout_times_list, cwn):
             f.write(
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
                 '\n\n\n\n\n')
-        with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{cwn}.html", "r+") as f:
-            f.write(
-                format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
-                '\n\n\n\n\n')
-            print(df)
+        # with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{cwn}.html", "r+") as f:
+        #     f.write(
+        #         format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
+        #         '\n\n\n\n\n')
+        #     print(df)
 
 
 if __name__ == '__main__':

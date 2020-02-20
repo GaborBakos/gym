@@ -80,7 +80,7 @@ CollectionExercise = {
     ExerciseGroup.REST: ExerciseGroup.REST,
     ExerciseGroup.DEADLIFT: ExerciseGroup.LEGS,
     ExerciseGroup.SHOULDER: ExerciseGroup.PUSH,
-    ExerciseGroup.SQUAT: ExerciseGroup.PUSH,
+    ExerciseGroup.SQUAT: ExerciseGroup.LEGS,
     }
 
 
