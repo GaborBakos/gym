@@ -4,7 +4,7 @@ import copy
 import datetime
 
 from formatter import table_formatter, column_formater
-from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise
+from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise, CollectionExercise
 from orm import percentage_of_orm, repetition_percentages_of_orm, adjusted_bench_press
 from database_connection import setup_connection, load_data
 
@@ -101,7 +101,12 @@ print(df)
 for idx, exercise in df.iterrows():
     print(exercise.Probability)
 
-# Old Stuff will need to be re-written
+
+def find_workout_for_day(day):
+    """ Finds which workout is on for the given day. """
+    return ExerciseRotation[DayList.index(day) % len(ExerciseRotation)]
+
+
 def remaining_time(time, exercises):
     """
     Computes the remaining time.
@@ -115,6 +120,69 @@ def remaining_time(time, exercises):
         for exercise in exercises:
             time -= exercise.TimeRequired
         return time
+
+
+def subset_exercise_list(exercise_list, exercise_type=ExerciseType.MAIN, exercise_group=None, specific_group=''):
+    """
+    Finds the subset of the exercise list given some conditions.
+    :param exercise_list: The whole list that will be sub-sampled.
+    :param exercise_type: The type of the exercises we are looking for.
+    :param exercise_group: The exercise group we are looking for.
+    :return: The subset of the exercises that meet the above conditions.
+    """
+    if specific_group is None:
+        specific_group = 'None'
+
+    exercise_list[(exercise_list['ExerciseType'] == str(exercise_type)) &
+                  (exercise_list['SpecificGroup'] == str(specific_group))]
+    ex = copy.deepcopy(exercise_list)
+    if exercise_group is not None:
+        ex = list(filter(lambda x: x if x.ExerciseGroup == exercise_group or x.ExerciseGroup is None else None, ex))
+    return list(filter(lambda x: x if x.ExerciseType == exercise_type else None, ex))
+
+
+def generate_workout(day, total_allocated_time, warm_up_time=15, cool_down_time=15):
+    """
+    Generate a coherent workout routine, that is fitted to your needs.
+    :param day: The day determines the workout routine.
+    :param total_allocated_time: How much time is dedicated for the whole training session.
+    :return: A table with the workout.
+    """
+    todays_workout = find_workout_for_day(day)
+    collection_workout = CollectionExercise[todays_workout]
+    warm_up_exercise = (ExerciseDirectory['Warm Up'][1]
+                        if find_workout_for_day(day) == 'Pull'
+                        else ExerciseDirectory['Warm Up'][0])
+    post_workout_routine = list(ExerciseDirectory['Post Streching'])
+    total_allocated_time -= (warm_up_time + cool_down_time)
+
+    all_exercises = load_data(conn, user_id='Gabor', exercise_group=[str(collection_workout)])
+    main_exercises = subset_exercise_list(all_exercises, exercise_type=ExerciseType.MAIN,
+                                          specific_group=str(todays_workout))
+    selected_main_exercise = main_exercises[pick_exercise_idx(main_exercises, 1)]
+    total_allocated_time = remaining_time(total_allocated_time, selected_main_exercise)
+    secondary_exercises = (subset_exercise_list(all_exercises,
+                                                exercise_type=ExerciseType.SECONDARY,
+                                                exercise_group=selected_main_exercise.ExerciseGroup))
+    selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_allocated_time)
+    selected_secondary_exercises = sorted(selected_secondary_exercises, key=lambda x: x.id)
+    final_list = [warm_up_exercise] + [selected_main_exercise] + selected_secondary_exercises + post_workout_routine
+
+    return generate_table(day, final_list)
+
+
+
+generate_workout('Mon', 90)
+
+
+
+
+
+
+
+
+# Old Stuff will need to be re-written
+
 
 
 def pick_exercise_idx(exercise_list, num_choices):
@@ -158,23 +226,10 @@ def pick_secondary_exercises(exercise_list, allocated_time):
     return res_secondaries + res_fillers
 
 
-def subset_exercise_list(exercise_list, exercise_type=ExerciseType.MAIN, exercise_group=None):
-    """
-    Finds the subset of the exercise list given some conditions.
-    :param exercise_list: The whole list that will be sub-sampled.
-    :param exercise_type: The type of the exercises we are looking for.
-    :param exercise_group: The exercise group we are looking for.
-    :return: The subset of the exercises that meet the above conditions.
-    """
-    ex = copy.deepcopy(exercise_list)
-    if exercise_group is not None:
-        ex = list(filter(lambda x: x if x.ExerciseGroup == exercise_group or x.ExerciseGroup is None else None, ex))
-    return list(filter(lambda x: x if x.ExerciseType == exercise_type else None, ex))
 
 
-def find_workout_for_day(day):
-    """ Finds which workout is on for the given day. """
-    return ExerciseRotation[DayList.index(day) % len(ExerciseRotation)]
+
+
 
 
 def generate_table(day, exercise_list, timed_workout=True):
@@ -210,31 +265,7 @@ def generate_table(day, exercise_list, timed_workout=True):
     return df
 
 
-def generate_workout(day, total_allocated_time):
-    """
-    Generate a coherent workout routine, that is fitted to your needs.
-    :param day: The day determines the workout routine.
-    :param total_allocated_time: How much time is dedicated for the whole training session.
-    :return: A table with the workout.
-    """
-    warm_up_exercise = (ExerciseDirectory['Warm Up'][1]
-                        if find_workout_for_day(day) == 'Pull'
-                        else ExerciseDirectory['Warm Up'][0])
-    total_allocated_time = remaining_time(total_allocated_time, warm_up_exercise)
-    post_workout_routine = list(ExerciseDirectory['Post Streching'])
-    total_allocated_time = remaining_time(total_allocated_time, post_workout_routine)
-    all_exercises = ExerciseDirectory[find_workout_for_day(day)]
-    main_exercises = subset_exercise_list(all_exercises, exercise_type=ExerciseType.MAIN)
-    selected_main_exercise = main_exercises[pick_exercise_idx(main_exercises, 1)]
-    total_allocated_time = remaining_time(total_allocated_time, selected_main_exercise)
-    secondary_exercises = (subset_exercise_list(all_exercises,
-                                                exercise_type=ExerciseType.SECONDARY,
-                                                exercise_group=selected_main_exercise.ExerciseGroup))
-    selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_allocated_time)
-    selected_secondary_exercises = sorted(selected_secondary_exercises, key=lambda x: x.id)
-    final_list = [warm_up_exercise] + [selected_main_exercise] + selected_secondary_exercises + post_workout_routine
 
-    return generate_table(day, final_list)
 
 
 def format_df(df, column_style=None, table_style=None):

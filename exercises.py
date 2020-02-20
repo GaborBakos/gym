@@ -28,6 +28,7 @@ class ExerciseGroup(Enum):
     # Other
     HIIT = 'hiit'
     STRETCH = 'stretch'
+    REST = 'rest'
 
     def __repr__(self):
         return "EE"
@@ -64,7 +65,25 @@ Probability:    {self.Probability},
         )
 
 
-ExerciseRotation = ('Chest', 'Back', 'Rest', 'Deadlift', 'Shoulder', 'Back', 'Squat')
+ExerciseRotation = (
+    ExerciseGroup.CHEST,
+    ExerciseGroup.BACK,
+    ExerciseGroup.REST,
+    ExerciseGroup.DEADLIFT,
+    ExerciseGroup.SHOULDER,
+    ExerciseGroup.BACK,
+    ExerciseGroup.SQUAT)
+
+CollectionExercise = {
+    ExerciseGroup.CHEST: ExerciseGroup.PUSH,
+    ExerciseGroup.BACK: ExerciseGroup.PULL,
+    ExerciseGroup.REST: ExerciseGroup.REST,
+    ExerciseGroup.DEADLIFT: ExerciseGroup.LEGS,
+    ExerciseGroup.SHOULDER: ExerciseGroup.PUSH,
+    ExerciseGroup.SQUAT: ExerciseGroup.PUSH,
+    }
+
+
 WarmUpTime = 15
 RollingTime = 10
 StrechingTime = 10
