@@ -67,23 +67,13 @@ def load_data(conn, user_id=None, exercise_group=None, specific_group=None):
     JOIN n_user_data nud on ne.ExerciseName=nud.ExerciseName
     {"--" if user_id is None else ""} WHERE nud.UserID = '{user_id}'
     {"--" if exercise_group is None else ""} {"WHERE " if user_id is None else "AND "} ne.ExerciseGroup in ('{exercise_group if exercise_group is not None else ""}')
-    {"--" if specific_group is None else ""} {"WHERE " if user_id is None else "AND "} ne.SpecificGroup in ('{specific_group if specific_group is not None else ""}')
+    {"--" if specific_group is None else ""} {"WHERE " if user_id is None and exercise_group is None else "AND "} ne.SpecificGroup in ('{specific_group if specific_group is not None else ""}')
     ORDER BY nud.LastUsed DESC
     ) as tmp
-    GROUP BY ExerciseName
+    GROUP BY ExerciseName {"--" if user_id is not None else ""}, tmp.UserID
     '''
     print(sql)
 
-    # '''
-    # SELECT DISTINCT * from n_exercises
-    # JOIN n_user_data on n_exercises.ExerciseName=n_user_data.ExerciseName
-    # WHERE n_user_data.LastUsed =    (
-    #                                 select MAX(LastUsed)
-    #                                 from n_user_data
-    #                                 {"--" if user_id is None else ""} where UserID = '{user_id}'
-    #                                 )
-    # {"--" if user_id is None else ""} AND n_user_data.UserID = '{user_id}'
-    # '''
     cur = conn.cursor()
     cur.execute(sql)
     return pandas.read_sql_query(sql, conn)
@@ -113,14 +103,14 @@ def main():
                     # print(f'Value is already entered {values}')
     with conn:
         try:
-            data = ['PI', 'Barbell Squats', 50, datetime.date(2020, 2, 18), 109]
+            data = ['PI', 'Lunges', 50, datetime.date(2020, 2, 18), 50]
             # print(data)
             add_user_data(conn, data)
         except sqlite3.IntegrityError:
             print(f'Value is already entered {data}')
 
     with conn:
-        print(load_data(conn, user_id='Gabor', specific_group=['ExerciseGroup.SQUAT', 'ExerciseGroup.DEADLIFT']))
+        print(load_data(conn, user_id=None, specific_group=['ExerciseGroup.SQUAT', 'ExerciseGroup.DEADLIFT']))
 
 
 if __name__ == '__main__':
