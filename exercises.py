@@ -11,7 +11,7 @@ class ExerciseType(Enum):
     FILLER = 'x_filler'
 
     def __repr__(self):
-        return "EE"
+        return f"{self}"
 
 
 class ExerciseGroup(Enum):
@@ -31,7 +31,16 @@ class ExerciseGroup(Enum):
     REST = 'rest'
 
     def __repr__(self):
-        return "EE"
+        return f"{self}"
+
+
+class WorkoutType(Enum):
+    STRENGTH = 'strength'
+    MUSCLE = 'muscle'
+    ENDURANCE = 'endurance'
+
+    def __repr__(self):
+        return f"{self}"
 
 
 class Exercise:

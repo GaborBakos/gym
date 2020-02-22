@@ -1,11 +1,10 @@
 import numpy
 import pandas
 import copy
-import datetime
 
-from formatter import table_formatter, column_formater
-from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, Exercise, CollectionExercise
-from orm import percentage_of_orm, repetition_percentages_of_orm, adjusted_bench_press
+from formatter import table_formatter, column_formater, format_df
+from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, CollectionExercise
+from orm import percentage_of_orm, repetition_percentages_of_orm
 from database_connection import setup_connection, load_data
 
 pandas.set_option('display.max_columns', 500)
@@ -13,9 +12,18 @@ pandas.set_option('display.width', 1000)
 DayList = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 conn = setup_connection()
 
-flatten = lambda l: [item for sublist in l for item in sublist]
-ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
-count_time = lambda l: sum(el[-1] for el in l)
+
+def _flatten(l):
+    return [item for sublist in l for item in sublist]
+
+
+def _ordinal(n):
+    return "%d%s" % (n, "tsnrhtdd"[(n/10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
+
+
+def _count_time(l):
+    return sum(el[-1] for el in l)
+
 
 def orm_eqv_rep_calculator_for_weight(w, rp_of_orm_dict):
     tmp_dict = {values: keys for keys, values in rp_of_orm_dict.items()}
@@ -128,12 +136,12 @@ def pick_secondary_exercises(exercise_list, allocated_time):
     """
     res_secondaries = []
     res_fillers = []
-    tmp_ex_list = exercise_list.copy()
+    tmp_ex_list = copy.deepcopy(exercise_list)
     while allocated_time > 0 and len(tmp_ex_list):
         exercise_idx = pick_exercise_idx(tmp_ex_list, 1)
-        selected_exercise = tmp_ex_list.iloc[exercise_idx].copy()
+        selected_exercise = copy.deepcopy(tmp_ex_list.iloc[exercise_idx])
         selected_exercise['WRR'] = muscle_building(selected_exercise.OneRepMax, wu=False)
-        selected_exercise['TimeRequired'] = count_time(selected_exercise['WRR'])
+        selected_exercise['TimeRequired'] = _count_time(selected_exercise['WRR'])
         if allocated_time - selected_exercise.TimeRequired < 0:
             tmp_ex_list = tmp_ex_list[tmp_ex_list.ID != selected_exercise.ID]
             continue
@@ -160,22 +168,22 @@ def generate_table(day, exercise_list, timed_workout=True):
     max_sets = -numpy.inf
     for ex in exercise_list:
         index.append(ex.ExerciseName)
-        if isinstance(ex, pandas.core.series.Series):
+        if isinstance(ex, pandas.Series):
             max_sets = max(max_sets, len(ex.WRR))
     if ~numpy.isfinite(max_sets):
         max_sets = 0
     index = pandas.Index(index)
-    columns = pandas.Index(flatten([[f"{ordinal(idx)} Weight", f"{ordinal(idx)} Reps", f"{ordinal(idx)} Rest"]
+    columns = pandas.Index(_flatten([[f"{_ordinal(idx)} Weight", f"{_ordinal(idx)} Reps", f"{_ordinal(idx)} Rest"]
                                     for idx in range(1, max_sets + 1)]), name=day)
     timer_columns = pandas.Index(['Time Alloc'])
     data = numpy.empty((len(exercise_list), max_sets * 3))
     timings = numpy.empty((len(exercise_list), 1), dtype=int)
     for idx, el in enumerate(exercise_list):
-        if isinstance(el, pandas.core.series.Series):
+        if isinstance(el, pandas.Series):
             weights = [tmp[0] for tmp in el.WRR]
             num_rep = [tmp[1] for tmp in el.WRR]
             rest_ti = [tmp[2] for tmp in el.WRR]
-            row = flatten([[weight, rep, rest] for weight, rep, rest in zip(weights, num_rep, rest_ti)])
+            row = _flatten([[weight, rep, rest] for weight, rep, rest in zip(weights, num_rep, rest_ti)])
             times = [el.TimeRequired]
             while len(row) < max_sets * 3:
                 row.extend([None, None, None])
@@ -191,22 +199,18 @@ def generate_table(day, exercise_list, timed_workout=True):
         df.columns.name = day
     return df
 
-def format_df(df, column_style=None, table_style=None):
-    if column_style is None:
-        column_style = dict()
-    if table_style is None:
-        table_style = []
-    return df.style.format(column_style).set_table_styles(table_style)
 
-
-def generate_workout(day, total_allocated_time, training_type=None, warm_up_time=15, cool_down_time=15):
+def generate_workout(day, total_allocated_time, training_type=None, warm_up_time=15, cool_down_time=15, user_config=1):
     """
     Generate a coherent workout routine, that is fitted to your needs.
     :param day: The day determines the workout routine.
     :param total_allocated_time: How much time is dedicated for the whole training session.
-    :return: A table with the workout.
+    :param training_type: tbd
+    :param warm_up_time: tbd
+    :param cool_down_time:  tbd
+    :return: df
     """
-
+    print(user_config)
     if training_type is None:
         training_type = muscle_building
     todays_workout = find_workout_for_day(day)
@@ -222,9 +226,9 @@ def generate_workout(day, total_allocated_time, training_type=None, warm_up_time
         final_list = warm_up_exercise + post_workout_routine
     else:
         main_exercises = filter_main(all_exercises, specific_group=todays_workout, exercise_type=ExerciseType.MAIN)
-        selected_main_exercise = main_exercises.iloc[pick_exercise_idx(main_exercises, 1)].copy()
+        selected_main_exercise = copy.deepcopy(main_exercises.iloc[pick_exercise_idx(main_exercises, 1)])
         selected_main_exercise['WRR'] = training_type(selected_main_exercise.OneRepMax, wu=True)
-        selected_main_exercise['TimeRequired'] = count_time(selected_main_exercise['WRR'])
+        selected_main_exercise['TimeRequired'] = _count_time(selected_main_exercise['WRR'])
         total_allocated_time -= selected_main_exercise['TimeRequired']
         secondary_exercises = filter_secondary(all_exercises, specific_group=todays_workout)
         selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_allocated_time)
@@ -232,33 +236,15 @@ def generate_workout(day, total_allocated_time, training_type=None, warm_up_time
     return generate_table(day, final_list)
 
 
-def generate_weekly_schedule(workout_times_list):
-    current_week_num = datetime.date.today().isocalendar()[1]
+def generate_weekly_schedule(workout_times_list, cwn):
     for idx, total_time in enumerate(workout_times_list):
         df = generate_workout(DayList[idx], total_time)
-        # with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\{DayList[idx]}.html", "w") as f:
-        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{current_week_num}.html", "a+") as f:
+        with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{cwn}.html", "r+") as f:
             f.write(
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
                 '\n\n\n\n\n')
-        with open(f"C:\\Users\\Gabor\\PycharmProjects\\gym\\week_{current_week_num}.html", "a+") as f:
+        with open(f"C:\\Users\\Gabor\\Desktop\\THE PLAN\\Gym\\week_{cwn}.html", "a+") as f:
             f.write(
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
                 '\n\n\n\n\n')
-            print(df)
-
-
-# print(strength_training(120, wu=False))
-# print(strength_training(136.8, wu=True, orm_calculator=adjusted_bench_press))
-# print(muscle_building(136.8, wu=True, orm_calculator=adjusted_bench_press))
-# print(endurance_training(136.8, wu=True, orm_calculator=adjusted_bench_press))
-
-
-# conn = setup_connection()
-# with conn:
-#     df = load_data(conn, user_id='Gabor', exercise_group=['ExerciseGroup.LEGS'],
-#                    specific_group=['ExerciseGroup.SQUAT'])
-# print(df)
-
-# for idx, exercise in df.iterrows():
-#     print(exercise.Probability)
+        print(df)
