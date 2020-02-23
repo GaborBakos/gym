@@ -132,6 +132,10 @@ def bisection_algorithm(func, lower_bound, upper_bound, eps=0.01):
     return mid_point
 
 
+def avg_orm(w, r):
+    return (brzycki(w, r) + epley(w, r) + landers(w, r)) / 3
+
+
 def repetition_percentages_of_orm(orm, orm_calculator=None, repetitions=None):
     def f(_orm, reps, func=orm_calculator):
         return bisection_algorithm(func=lambda w: func(w, reps) - _orm,

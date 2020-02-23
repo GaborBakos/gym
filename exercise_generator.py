@@ -3,9 +3,9 @@ import pandas
 import copy
 
 from formatter import table_formatter, column_formater, format_df
-from exercises import ExerciseDirectory, ExerciseRotation, ExerciseType, CollectionExercise
+from exercises import ExerciseRotation, ExerciseType, CollectionExerciseStr
 from orm import percentage_of_orm, repetition_percentages_of_orm
-from database_connection import setup_connection, load_data
+from database_connection import setup_connection, load_data, load_user_config
 
 pandas.set_option('display.max_columns', 500)
 pandas.set_option('display.width', 1000)
@@ -22,7 +22,7 @@ def _ordinal(n):
 
 
 def _count_time(l):
-    return sum(el[-1] for el in l)
+    return sum(el[-1] for el in l) + len(l) * 1
 
 
 def orm_eqv_rep_calculator_for_weight(w, rp_of_orm_dict):
@@ -91,7 +91,9 @@ def endurance_training(orm, num_sets=4, wu=False, orm_calculator=None):
     res.extend(wrr)
     res = [(_round(w), rep, rest) for (w, rep, rest) in res]
     return res
-
+workout_to_func_dict = {'WorkoutType.STRENGTH': strength_training,
+                        'WorkoutType.MUSCLE': muscle_building,
+                        'WorkoutType.ENDURANCE': endurance_training}
 
 def find_workout_for_day(day):
     """ Finds which workout is on for the given day. """
@@ -126,7 +128,7 @@ def pick_exercise_idx(exercise_list, num_choices):
     return int(numpy.random.choice(range(len(exercise_list)), num_choices, p=probability_distribution))
 
 
-def pick_secondary_exercises(exercise_list, allocated_time):
+def pick_secondary_exercises(exercise_list, allocated_time, training_type=muscle_building):
     """
     Pick secondary exercises.
     :param exercise_list: The whole list of exercises.
@@ -200,40 +202,40 @@ def generate_table(day, exercise_list, timed_workout=True):
     return df
 
 
-def generate_workout(day, total_allocated_time, training_type=None, warm_up_time=15, cool_down_time=15, user_config=1):
-    """
-    Generate a coherent workout routine, that is fitted to your needs.
-    :param day: The day determines the workout routine.
-    :param total_allocated_time: How much time is dedicated for the whole training session.
-    :param training_type: tbd
-    :param warm_up_time: tbd
-    :param cool_down_time:  tbd
-    :return: df
-    """
-    print(user_config)
-    if training_type is None:
-        training_type = muscle_building
-    todays_workout = find_workout_for_day(day)
-    collection_workout = CollectionExercise[todays_workout]
-    warm_up_exercise = [(ExerciseDirectory['Warm Up'][1]
-                        if find_workout_for_day(day) == 'Pull'
-                        else ExerciseDirectory['Warm Up'][0])]
-    post_workout_routine = list(ExerciseDirectory['Post Streching'])
-    total_allocated_time -= (warm_up_time + cool_down_time)
-
-    all_exercises = load_data(conn, user_id='Gabor', exercise_group=[str(collection_workout)])
-    if not len(all_exercises):
-        final_list = warm_up_exercise + post_workout_routine
-    else:
-        main_exercises = filter_main(all_exercises, specific_group=todays_workout, exercise_type=ExerciseType.MAIN)
-        selected_main_exercise = copy.deepcopy(main_exercises.iloc[pick_exercise_idx(main_exercises, 1)])
-        selected_main_exercise['WRR'] = training_type(selected_main_exercise.OneRepMax, wu=True)
-        selected_main_exercise['TimeRequired'] = _count_time(selected_main_exercise['WRR'])
-        total_allocated_time -= selected_main_exercise['TimeRequired']
-        secondary_exercises = filter_secondary(all_exercises, specific_group=todays_workout)
-        selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_allocated_time)
-        final_list = warm_up_exercise + [selected_main_exercise] + selected_secondary_exercises + post_workout_routine
-    return generate_table(day, final_list)
+# def generate_workout(day, total_allocated_time, training_type=None, warm_up_time=15, cool_down_time=15, user_config=1):
+#     """
+#     Generate a coherent workout routine, that is fitted to your needs.
+#     :param day: The day determines the workout routine.
+#     :param total_allocated_time: How much time is dedicated for the whole training session.
+#     :param training_type: tbd
+#     :param warm_up_time: tbd
+#     :param cool_down_time:  tbd
+#     :return: df
+#     """
+#     print(user_config)
+#     if training_type is None:
+#         training_type = muscle_building
+#     todays_workout = find_workout_for_day(day)
+#     collection_workout = CollectionExercise[todays_workout]
+#     warm_up_exercise = [(ExerciseDirectory['Warm Up'][1]
+#                         if find_workout_for_day(day) == 'Pull'
+#                         else ExerciseDirectory['Warm Up'][0])]
+#     post_workout_routine = list(ExerciseDirectory['Post Streching'])
+#     total_allocated_time -= (warm_up_time + cool_down_time)
+#
+#     all_exercises = load_data(conn, user_id='Gabor', exercise_group=[str(collection_workout)])
+#     if not len(all_exercises):
+#         final_list = warm_up_exercise + post_workout_routine
+#     else:
+#         main_exercises = filter_main(all_exercises, specific_group=todays_workout, exercise_type=ExerciseType.MAIN)
+#         selected_main_exercise = copy.deepcopy(main_exercises.iloc[pick_exercise_idx(main_exercises, 1)])
+#         selected_main_exercise['WRR'] = training_type(selected_main_exercise.OneRepMax, wu=True)
+#         selected_main_exercise['TimeRequired'] = _count_time(selected_main_exercise['WRR'])
+#         total_allocated_time -= selected_main_exercise['TimeRequired']
+#         secondary_exercises = filter_secondary(all_exercises, specific_group=todays_workout)
+#         selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_allocated_time)
+#         final_list = warm_up_exercise + [selected_main_exercise] + selected_secondary_exercises + post_workout_routine
+#     return generate_table(day, final_list)
 
 
 def generate_weekly_schedule(workout_times_list, cwn):
@@ -248,3 +250,69 @@ def generate_weekly_schedule(workout_times_list, cwn):
                 format_df(df, column_style=column_formater, table_style=table_formatter).render().replace("nan", "") +
                 '\n\n\n\n\n')
         print(df)
+
+
+def generate_workout(day, db_conn, user_cfg):
+    """
+    Generate a coherent workout routine, that is fitted to your needs.
+    :param day:
+    :param db_conn:
+    :param user_cfg:
+    :return:
+    """
+    total_alloc_time = user_cfg.loc[day]
+    training_type_main = workout_to_func_dict[user_cfg.WorkoutTypeMain]
+    training_type_sec = workout_to_func_dict[user_cfg.WorkoutTypeSec]
+
+    todays_workout = user_cfg.loc[day + 'Ex']
+    collection_workout = CollectionExerciseStr[todays_workout]
+    if user_cfg.WarmUpTime and day != 'Wed':
+        warm_up_exercise = load_data(db_conn, user_id=user_cfg.UserID, exercise_group=['ExerciseGroup.HIIT'],
+                                     specific_group=[collection_workout]).iloc[0]
+        warm_up_exercise['WRR'] = [(0, 1, 0)]
+        warm_up_exercise['TimeRequired'] = user_cfg.WarmUpTime
+        warm_up_exercise = [warm_up_exercise]
+    else:
+        warm_up_exercise = []
+    if user_cfg.CoolDownTime:
+        post_workout_exercises = load_data(db_conn, user_id=user_cfg.UserID, exercise_group=['ExerciseGroup.STRETCH'])
+        post_workout_exercises = copy.deepcopy(
+                                            post_workout_exercises.iloc[pick_exercise_idx(post_workout_exercises, 1)])
+        post_workout_exercises['WRR'] = [(0, 1, 0)]
+        post_workout_exercises['TimeRequired'] = user_cfg.CoolDownTime
+        post_workout_exercises = [post_workout_exercises]
+    else:
+        post_workout_exercises = []
+    total_alloc_time -= (user_cfg.WarmUpTime + user_cfg.CoolDownTime)
+
+    all_exercises = load_data(db_conn, user_id=user_cfg.UserID, exercise_group=[str(collection_workout)])
+    if not len(all_exercises):
+        final_list = warm_up_exercise + post_workout_exercises
+    else:
+        # Main Exercises
+        # TODO: this should be simplified (not doing all these on three seperate lines etc, maybe move the three into 1
+        main_exercises = filter_main(all_exercises, specific_group=todays_workout, exercise_type=ExerciseType.MAIN)
+        selected_main_exercise = copy.deepcopy(main_exercises.iloc[pick_exercise_idx(main_exercises, 1)])
+        selected_main_exercise['WRR'] = training_type_main(selected_main_exercise.OneRepMax, wu=True)
+        selected_main_exercise['TimeRequired'] = _count_time(selected_main_exercise['WRR'])
+        selected_main_exercise_wu = copy.deepcopy(selected_main_exercise)
+        selected_main_exercise_wu['ExerciseName'] = selected_main_exercise['ExerciseName'] + ' WU'
+        selected_main_exercise_wu['WRR'] = selected_main_exercise['WRR'][:3]
+        selected_main_exercise_wu['TimeRequired'] = _count_time(selected_main_exercise_wu['WRR'])
+        selected_main_exercise_pr = copy.deepcopy(selected_main_exercise)
+        selected_main_exercise_pr['WRR'] = selected_main_exercise['WRR'][3:]
+        selected_main_exercise_pr['TimeRequired'] = _count_time(selected_main_exercise_pr['WRR'])
+        selected_main_exercises = [selected_main_exercise_wu, selected_main_exercise_pr]
+        # Secondary Exercises
+        total_alloc_time -= selected_main_exercise['TimeRequired']
+        secondary_exercises = filter_secondary(all_exercises, specific_group=todays_workout)
+        selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_alloc_time,
+                                                                training_type_sec)
+        # Putting it all together
+        final_list = warm_up_exercise + selected_main_exercises + selected_secondary_exercises + post_workout_exercises
+    return generate_table(day, final_list)
+
+
+db_conn = setup_connection()
+
+generate_workout('Sun', db_conn, load_user_config(db_conn, 'Gabor'))

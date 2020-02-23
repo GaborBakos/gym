@@ -9,8 +9,7 @@ DayList = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
 
 
 if __name__ == '__main__':
-    user_input = [90, 90, 90, 90, 90, 120, 120]
-    current_week_num = datetime.date.today().isocalendar()[1]
+    cwn = datetime.date.today().isocalendar()[1]
     user_id = 'Gabor'
     collection_folder = "C:\\Users\\Gabor\\PycharmProjects\\gym\\weekly_exercises\\"
     configuring_call = (
@@ -18,18 +17,18 @@ if __name__ == '__main__':
         f"gym_weekly_template_{user_id.lower()}.ipynb -p USER_ID {user_id}")
     process_call = (
         f"jupyter nbconvert gym_weekly_template_{user_id.lower()}.ipynb"
-        f" --template nbextensions --to html --execute --output {collection_folder}week_{current_week_num}.html")
+        f" --template nbextensions --to html --execute --output {collection_folder}week_{cwn}.html")
     remove_tmp_template = f"rm gym_weekly_template_{user_id}.ipynb"
     # Setting up the user_id
     subprocess.check_output(configuring_call)
     # Executing and rendering HTML
     subprocess.check_output(process_call)
     subprocess.check_output(remove_tmp_template)
-    for line in fileinput.input(f"{collection_folder}week_{current_week_num}.html", inplace=True):
+    for line in fileinput.input(f"{collection_folder}week_{cwn}.html", inplace=True):
         if "gym_weekly_template" in line:
-            line = line.replace("gym_weekly_template", f"Exercises for Week {current_week_num}")
+            line = line.replace("gym_weekly_template", f"Exercises for Week {cwn}")
         if "Exercises for Week __" in line:
-            line = line.replace("__", str(current_week_num))
+            line = line.replace("__", str(cwn))
         if """<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Parameters</span>""" in line:
             line = ''
         if "USER_ID" in line:

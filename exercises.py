@@ -83,6 +83,14 @@ ExerciseRotation = (
     ExerciseGroup.BACK,
     ExerciseGroup.SQUAT)
 
+CollectionExerciseStr = {
+    'ExerciseGroup.CHEST': 'ExerciseGroup.PUSH',
+    'ExerciseGroup.BACK': 'ExerciseGroup.PULL',
+    'ExerciseGroup.REST': 'ExerciseGroup.REST',
+    'ExerciseGroup.DEADLIFT': 'ExerciseGroup.LEGS',
+    'ExerciseGroup.SHOULDER': 'ExerciseGroup.PUSH',
+    'ExerciseGroup.SQUAT': 'ExerciseGroup.LEGS',
+    }
 CollectionExercise = {
     ExerciseGroup.CHEST: ExerciseGroup.PUSH,
     ExerciseGroup.BACK: ExerciseGroup.PULL,
@@ -91,7 +99,6 @@ CollectionExercise = {
     ExerciseGroup.SHOULDER: ExerciseGroup.PUSH,
     ExerciseGroup.SQUAT: ExerciseGroup.LEGS,
     }
-
 
 WarmUpTime = 15
 RollingTime = 10
@@ -535,14 +542,22 @@ ExerciseDirectory = {
         ),
     'Warm Up':
         (
+            Exercise(exercise_name='Stair Master',
+                     exercise_type=ExerciseType.MAIN,
+                     exercise_group=ExerciseGroup.HIIT,
+                     specific_group=ExerciseGroup.LEGS,
+                     probability=0.5,
+                     ),
             Exercise(exercise_name='Indoor Cycling',
                      exercise_type=ExerciseType.MAIN,
                      exercise_group=ExerciseGroup.HIIT,
+                     specific_group=ExerciseGroup.PUSH,
                      probability=0.5,
                      ),
             Exercise(exercise_name='Rowing',
                      exercise_type=ExerciseType.MAIN,
                      exercise_group=ExerciseGroup.HIIT,
+                     specific_group=ExerciseGroup.PULL,
                      probability=0.5,
                      ),
         ),
@@ -559,6 +574,7 @@ ExerciseDirectory = {
             Exercise(exercise_name='Streching',
                      exercise_type=ExerciseType.MAIN,
                      exercise_group=ExerciseGroup.STRETCH,
+                     specific_group=ExerciseGroup.SQUAT,
                      probability=0.5,
                      ),
             Exercise(exercise_name='Massage Chair',

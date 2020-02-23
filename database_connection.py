@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Error
-from exercises import ExerciseDirectory, WorkoutType
+from exercises import ExerciseDirectory, WorkoutType, ExerciseGroup
 import datetime
 import pandas
 
@@ -58,8 +58,10 @@ def update_user_config(conn, data):
     :return:
     """
     sql = '''
-    INSERT INTO user_config(UpdateTime, UserID, WorkoutType, Mon, Tue, Wed, Thu, Fri, Sat, Sun, BodyWeight, BodyFat)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+    INSERT INTO user_config(UpdateTime, UserID, WorkoutTypeMain, WorkoutTypeSec, WarmUpTime, CoolDownTime, WarmUpMain,
+                            MonEx, TueEx, WedEx, ThuEx, FriEx, SatEx, SunEx, Mon, Tue, Wed, Thu, Fri, Sat, Sun,
+                            BodyWeight, BodyFat)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     '''
     cur = conn.cursor()
     cur.execute(sql, data)
@@ -79,7 +81,8 @@ def load_user_config(conn, user_id):
     '''
     result = pandas.read_sql_query(sql, conn)
     result.drop('UpdateTime', axis=1, inplace=True)
-    return result
+    # We are only returning 1 row hence we are gonna return a series instead of a DataFrame
+    return result.iloc[0]
 
 
 def load_data(conn, user_id=None, exercise_group=None, specific_group=None):
@@ -114,50 +117,68 @@ def setup_connection(database=r"C:\Users\Gabor\PycharmProjects\gym\exercises_db\
     return create_connection(database)
 
 
-# def main():
-#     # create a database connection
-#     conn = setup_connection()
-#     with conn:
-#         for group in ExerciseDirectory.items():
-#             for ex in group[1]:
-#                 values = [
-#                     ex.ExerciseName,
-#                     ex.ID,
-#                     ex.ExerciseGroup,
-#                     ex.SpecificGroup,
-#                     ex.ExerciseType,
-#                     ex.Probability]
-#                 values = [str(el) for el in values]
-#                 # print(f"Currently adding {values} to our database")
-#                 try:
-#                     add_exercise(conn, values)
-#                 except sqlite3.IntegrityError:
-#                     pass
-#                     # print(f'Value is already entered {values}')
-#     with conn:
-#         for group in ExerciseDirectory.items():
-#             for ex in group[1]:
-#                 try:
-#                     data = ['Gabor', ex.ExerciseName, 100, datetime.date(2020, 2, 18), 109]
-#                     add_user_data(conn, data)
-#                 except sqlite3.IntegrityError:
-#                     print(f'Value is already entered {data}')
-#
-#     with conn:
-#         print(load_data(conn, user_id=None, specific_group=['ExerciseGroup.SQUAT', 'ExerciseGroup.DEADLIFT']))
-#     with conn:
-#         UpdateTime = datetime.datetime.now()
-#         UserID = 'Gabor'
-#         Workout = str(WorkoutType.STRENGTH)
-#         WorkoutTimes = [90, 90, 90, 45, 90, 120, 120]
-#         BodyWeight = 110.1
-#         BodyFat = 25.8
-#         data = [UpdateTime, UserID, Workout, *WorkoutTimes, BodyWeight, BodyFat]
-#         update_user_config(conn, data)
-#     with conn:
-#         user_id = 'Gabor'
-#         print(load_user_config(conn, 'Gabor'))
-#
-#
-# if __name__ == '__main__':
-#     main()
+def main():
+    # create a database connection
+    conn = setup_connection()
+    with conn:
+        for group in ExerciseDirectory.items():
+            for ex in group[1]:
+                values = [
+                    ex.ExerciseName,
+                    ex.ID,
+                    ex.ExerciseGroup,
+                    ex.SpecificGroup,
+                    ex.ExerciseType,
+                    ex.Probability]
+                values = [str(el) for el in values]
+                # print(f"Currently adding {values} to our database")
+                try:
+                    add_exercise(conn, values)
+                except sqlite3.IntegrityError:
+                    pass
+                    # print(f'Value is already entered {values}')
+    # with conn:
+    #     for group in ExerciseDirectory.items():
+    #         for ex in group[1]:
+    #             try:
+    #                 data = ['Gabor', ex.ExerciseName, 100, datetime.date(2020, 2, 18), 109]
+    #                 add_user_data(conn, data)
+    #             except sqlite3.IntegrityError:
+    #                 print(f'Value is already entered {data}')
+    #
+    # with conn:
+    #     print(load_data(conn, user_id=None, specific_group=['ExerciseGroup.SQUAT', 'ExerciseGroup.DEADLIFT']))
+    # with conn:
+    #     UpdateTime = datetime.datetime.now()
+    #     UserID = 'Gabor'
+    #     WorkoutTypeMain = str(WorkoutType.STRENGTH)
+    #     WorkoutTypeSec = str(WorkoutType.MUSCLE)
+    #     WarmUpTime = 15
+    #     CoolDownTime = 15
+    #     WarmUpMain = 1
+    #     MonEx = str(ExerciseGroup.CHEST)
+    #     TueEx = str(ExerciseGroup.BACK)
+    #     WedEx = str(ExerciseGroup.REST)
+    #     ThuEx = str(ExerciseGroup.DEADLIFT)
+    #     FriEx = str(ExerciseGroup.SHOULDER)
+    #     SatEx = str(ExerciseGroup.BACK)
+    #     SunEx = str(ExerciseGroup.SQUAT)
+    #     Mon = 90
+    #     Tue = 90
+    #     Wed = 45
+    #     Thu = 90
+    #     Fri = 90
+    #     Sat = 120
+    #     Sun = 120
+    #     BodyWeight = 109
+    #     BodyFat = 25.5
+    #     data = [UpdateTime, UserID, WorkoutTypeMain, WorkoutTypeSec, WarmUpTime, CoolDownTime, WarmUpMain,
+    #             MonEx, TueEx, WedEx, ThuEx, FriEx, SatEx, SunEx, Mon, Tue, Wed, Thu, Fri, Sat, Sun, BodyWeight, BodyFat]
+    #     update_user_config(conn, data)
+    # with conn:
+    #     user_id = 'Gabor'
+    #     print(load_user_config(conn, user_id))
+
+
+if __name__ == '__main__':
+    main()
