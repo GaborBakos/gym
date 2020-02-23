@@ -308,6 +308,7 @@ def generate_workout(day, db_conn, user_cfg):
         secondary_exercises = filter_secondary(all_exercises, specific_group=todays_workout)
         selected_secondary_exercises = pick_secondary_exercises(secondary_exercises, total_alloc_time,
                                                                 training_type_sec)
+        selected_secondary_exercises.sort(key=lambda x: x.ID)
         # Putting it all together
         final_list = warm_up_exercise + selected_main_exercises + selected_secondary_exercises + post_workout_exercises
     return generate_table(day, final_list)
