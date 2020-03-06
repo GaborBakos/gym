@@ -5,7 +5,7 @@ import copy
 from formatter import table_formatter, column_formater, format_df
 from exercises import ExerciseRotation, ExerciseType, CollectionExerciseStr
 from orm import percentage_of_orm, repetition_percentages_of_orm
-from database_connection import setup_connection, load_data, load_user_config
+from database_connection import setup_connection, load_data
 
 pandas.set_option('display.max_columns', 500)
 pandas.set_option('display.width', 1000)
@@ -75,6 +75,8 @@ def muscle_building(orm, num_sets=4, wu=False, orm_calculator=None):
 def endurance_training(orm, num_sets=4, wu=False, orm_calculator=None):
     res = []
     p_of_orm_dict = percentage_of_orm(orm, [0.8, 0.7, 0.6, 0.5, 0.4, 0.3])
+    if orm_calculator is None:
+        orm_calculator = orm_eqv_rep_calculator_for_weight
     rp_of_orm_dict = repetition_percentages_of_orm(orm, orm_calculator)
     if wu:
         times = [1, 1, 1]
@@ -93,9 +95,34 @@ def endurance_training(orm, num_sets=4, wu=False, orm_calculator=None):
     return res
 
 
+def recovery_training(orm, num_sets=4, wu=True, orm_calculator=None):
+    res = []
+    p_of_orm_dict = percentage_of_orm(orm, [0.6, 0.5, 0.4, 0.3, 0.2])
+    if orm_calculator is None:
+        orm_calculator = orm_eqv_rep_calculator_for_weight
+    rp_of_orm_dict = repetition_percentages_of_orm(orm, orm_calculator)
+    if wu:
+        times = [1, 1, 1]
+        p_weights = [20, 30, 40]
+        reps = [15, 15, 15]
+        wu_wrr = [(p_of_orm_dict[w], r, t) for w, r, t in zip(p_weights, reps, times)]
+        res.extend(wu_wrr)
+    times = [1 for _ in range(num_sets)]
+    p_weights = [50 for _ in range(num_sets)]
+    # We use weight + 10 as a heuristic, is a nutshell if we used weight (no +10) we would get our ORM scaled down to
+    # the weight we provided with the number or reps we would need to do to be equivalent to our ORM.
+    # Therefore, this would be an impossible exercise to complete for more than 1 set.
+    wrr = [(p_of_orm_dict[w], orm_eqv_rep_calculator_for_weight(p_of_orm_dict[w + 10], rp_of_orm_dict), t)
+           for w, t in zip(p_weights, times)]
+    res.extend(wrr)
+    res = [(_round(w), rep, rest) for (w, rep, rest) in res]
+    return res
+
+
 workout_to_func_dict = {'WorkoutType.STRENGTH': strength_training,
                         'WorkoutType.MUSCLE': muscle_building,
-                        'WorkoutType.ENDURANCE': endurance_training}
+                        'WorkoutType.ENDURANCE': endurance_training,
+                        'WorkoutType.RECOVERY': recovery_training}
 
 
 def find_workout_for_day(day):
@@ -234,7 +261,7 @@ def create_main_list(all_exercises, todays_workout, training_type_main):
     return [selected_main_exercise_wu, selected_main_exercise_pr], selected_main_exercise['TimeRequired']
 
 
-def create_warm_up_list(user_cfg, collection_workout):
+def create_warm_up_list(db_conn, user_cfg, collection_workout):
     warm_up_exercise = load_data(db_conn, user_id=user_cfg.UserID, exercise_group=['ExerciseGroup.HIIT'],
                                  specific_group=[collection_workout]).iloc[0]
     warm_up_exercise['WRR'] = [(0, 1, 0)]
@@ -242,7 +269,7 @@ def create_warm_up_list(user_cfg, collection_workout):
     return [warm_up_exercise]
 
 
-def create_post_workout_list(user_cfg):
+def create_post_workout_list(db_conn, user_cfg):
     post_workout_exercises = load_data(db_conn, user_id=user_cfg.UserID, exercise_group=['ExerciseGroup.STRETCH'])
     post_workout_exercises = copy.deepcopy(
         post_workout_exercises.iloc[pick_exercise_idx(post_workout_exercises, 1)])
@@ -265,11 +292,11 @@ def generate_workout(day, db_conn, user_cfg):
     todays_workout = user_cfg.loc[day + 'Ex']
     collection_workout = CollectionExerciseStr[todays_workout]
     if user_cfg.WarmUpTime and day != 'Wed':
-        warm_up_exercise = create_warm_up_list(user_cfg, collection_workout)
+        warm_up_exercise = create_warm_up_list(db_conn, user_cfg, collection_workout)
     else:
         warm_up_exercise = []
     if user_cfg.CoolDownTime:
-        post_workout_exercises = create_post_workout_list(user_cfg)
+        post_workout_exercises = create_post_workout_list(db_conn, user_cfg)
     else:
         post_workout_exercises = []
     total_alloc_time -= (user_cfg.WarmUpTime + user_cfg.CoolDownTime)
@@ -290,6 +317,6 @@ def generate_workout(day, db_conn, user_cfg):
     return generate_table(day, final_list)
 
 
-db_conn = setup_connection()
-
-generate_workout('Sun', db_conn, load_user_config(db_conn, 'Gabor'))
+# db_conn = setup_connection()
+#
+# generate_workout('Sun', db_conn, load_user_config(db_conn, 'Gabor'))
