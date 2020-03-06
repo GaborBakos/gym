@@ -107,7 +107,7 @@ def update_single_exercise(db_conn, user_name, exercise_name, w, bw, date=None):
 def update_user_configuration(db_conn, uc):
     with db_conn as db:
         data = [datetime.datetime.now(),
-                uc.user_id, uc.wokrout_type_main, uc.workout_type_sec, uc.warmup_time, uc.cool_down_time,
+                uc.user_id, uc.workout_type_main, uc.workout_type_sec, uc.warmup_time, uc.cool_down_time,
                 uc.warmup_main, uc.mon_ex, uc.tue_ex, uc.wed_ex, uc.thu_ex, uc.fri_ex, uc.sat_ex, uc.sun_ex,
                 uc.mon, uc.tue, uc.wed, uc.thu, uc.fri, uc.sat, uc.sun, uc.body_weight, uc.body_fat]
         try:
